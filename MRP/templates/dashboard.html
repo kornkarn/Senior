@@ -1,0 +1,55 @@
+{% extends 'layout.html'%}
+
+{% block content %}
+
+<div class = 'container'>
+    <form method = "POST">
+        {% csrf_token %}
+        <br>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Part Number</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Vendor Name</th>
+                    <th scope="col">EOQ</th>
+                    <th scope="col">Order Released</th>
+                    <th scope="col">Alert Sign</th>
+                </tr>
+
+            </thead>
+            <tbody>
+           
+            {% for chem in chemical %}
+            <tr>
+                <th scope="row">{{chem.part_num}}</th>
+                <td>{{chem.chem_name}}</td>
+                <td>{{chem.vendor_id.vendor_name}}</td>
+                <td>EOQ</td>
+                <td>Order Released</td>
+                <!--ถ้า on-hand เหลือน้อยกว่า safety stock ให้ปุ่ม alert ขึ้น-->
+                {% if chem.part_num in enough %}
+                    <th scope="col"><input type = "submit" class = "btn btn-success" value = "enough  "></th>
+                {% elif chem.part_num in shortage %}
+                    <th scope="col"><input type = "submit" class = "btn btn-danger" value = "shortage"></th>
+                
+                {% endif %}
+                        
+               
+            </tr>
+                   
+            {% endfor %}
+                
+            </tbody>
+
+
+        </table>
+
+    </form>
+
+
+
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'layout.html'%}
+
+{% block content %}
+
+<div class = 'container'>
+    <form method = "POST">
+        {% csrf_token %}
+        <br>
+        <div class="form-group row w-50">
+            <label for="partnumber" class="col-sm-2 col-form-label">Part_Number</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="partnumber" name = "partnumber">
+            </div>   
+        </div>
+        <div class="form-group row w-50">
+            <label for="chemname" class="col-sm-2 col-form-label">Name</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="chemname" name = "chemname">
+            </div>        
+        </div>
+        <div class="form-group row w-50">
+            <label for="vendorname" class="col-sm-2 col-form-label">Vendorname</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="vendorname" name = "vendorname">
+            </div>           
+        </div>
+        <div class="form-group row w-50">
+            <label for="leadtime" class="col-sm-2 col-form-label">Lead Time</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="leadtime" name = "leadtime">
+            </div>           
+        </div>
+        <div class="form-group row w-50">
+            <label for="stdpack" class="col-sm-2 col-form-label">Standard Packing</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="stdpack" name = "stdpack">
+            </div>           
+        </div>
+        <div class="form-group row w-50">
+            <label for="uom" class="col-sm-2 col-form-label">UOM</label>
+            <select class="form-control" id="uom" name = "uom">
+                <option value = "litre">litre</option>
+                <option value = "grams">grams</option>
+                <option value = "unit">unit</option>
+            </select>
+        </div>
+      
+        <div class="form-group row w-50">
+            <label for="price" class="col-sm-2 col-form-label">Price</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="price" name = "price">
+            </div>
+        </div>
+        <div class="form-group row w-50">
+            <label for="emailvendor" class="col-sm-2 col-form-label">Email</label>
+            <div class="col-sm-10">
+                <input type="email" class="form-control" id="emailvendor" name = "emailvendor">
+            </div>
+        </div>
+        <div class="form-group row w-50">
+            <label for="ponum" class="col-sm-2 col-form-label">PO Number</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="ponum" name = "ponum">    
+            </div>
+        </div>
+        <div class="form-group row w-50">
+            <label for="onhand" class="col-sm-2 col-form-label">On-hand</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="onhand" name = "onhand">
+            </div>    
+        </div>
+       
+        <div class="form-group row w-50">
+            <label for="expdate" class="col-sm-2 col-form-label">Expired Date</label>
+            <div class="col-sm-10">
+                <input type="date" class="form-control" id="expdate" name = "expdate">
+            </div>
+        </div>
+        
+        <div class="form-group row w-50">
+            <label for="chemclass" class="col-sm-2 col-form-label">Class</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="chemclass" name = "chemclass">
+            </div>
+        </div>
+        <div class="form-group row w-50">
+            <label for="stdbom" class="col-sm-2 col-form-label">Std Bom</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="stdbom" name = "stdbom">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Add</button>
+    
+    </form>
+
+    
+</div>
+
+
+{% endblock %}
+

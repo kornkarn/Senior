@@ -1,0 +1,87 @@
+{% extends 'layout.html'%}
+
+{% block content %}
+
+<div class = 'container'>
+    <br>
+    <center><h1>Material Planning</h1></center>
+    <!--มีให้เลือกว่าจะเอา planning ช่วงปีไหนเดือนไหน, สารไหน-->
+    
+    <form method = "get">
+      {{wlfilter.form}}
+      <button class = 'btn btn-primary' type = 'submit'>Search</button>
+
+    </form>   
+    
+</div>
+<form method="POST">
+  {% csrf_token %}
+  <br>
+  <div class="input-group mb-3">
+  <input type="search" class="form-control" placeholder="Chemical's name" aria-label="Chemical's name" aria-describedby="basic-addon2" name = "searchchem">
+  <div class="input-group-append">
+    <button class="btn btn-outline-secondary" type="submit">Search</button>
+  </div>
+</div>
+
+</form>
+
+ 
+<br>
+{% if chem_data != null %}
+  <div class = 'container'>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">Part Number</th>
+          <th scope="col">Chemical Name</th>
+          <th scope="col">STD BOM</th>
+        </tr>
+      </thead>
+      <tr>
+        {% for i in chem_data %}
+          <td>{{i.part_num}}</td>
+          <td>{{i.chem_name}}</td>
+          <td>{{i.STD_BOM}}</td>
+        {% endfor %}
+      </tr>
+    </table> 
+  </div>
+  <table>
+    <tr>
+      <td><th scope="row">Week</th></td>
+      {% for week in each_week %}
+        <td scope="row">{{week}}</td>
+      {% endfor %}
+    </tr>
+    <tr>
+      <td><th scope="row">On-hand</th></td>
+    </tr>
+    <tr>
+      <td><th scope="row">Actual Usage</th></td>
+      {% for ac in actual_each_week %}
+        <td scope="row">{{ac}}</td>
+      {% endfor %}
+    </tr>
+    <tr>
+      <td><th scope="row">Forecast Usage</th></td>
+      {% for sum in forecast_usage_each_chem %}
+        <td scope="row">{{sum}}</td>
+      {% endfor %}
+    </tr>
+    <tr>
+      <td><th scope="row">Planned Order Receipts</th></td><br>
+    </tr>
+    <tr>
+      <td><th scope="row">Planned Order Released</th></td><br>
+    </tr>
+    <tr>
+      <td><th scope="row">Balance</th></td><br>
+    </tr>
+  </table>
+ 
+
+{% endif %}
+
+{% endblock %}
+

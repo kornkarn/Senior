@@ -1,0 +1,32 @@
+{% extends 'layout.html'%}
+
+
+{% block content %}
+
+<div class = 'container'>
+    <form method = "POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <center>
+        <br><br>
+        <div class="input-group" >
+            <div class="custom-file">
+                <input type="file" class="custom-file-input" name = "excel_file" required = "required">
+                <label class="custom-file-label" for="inputGroupFile04">Choose file</label>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-secondary" >Upload</button>
+        </center>
+
+
+    </form>
+    {% for data in data_list %}
+        <br>
+        {{data}}
+    {% endfor %}
+    
+   
+    
+</div>
+
+
+{% endblock %}

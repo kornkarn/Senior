@@ -1,0 +1,101 @@
+{% extends 'layout.html'%}
+
+{% block content %}
+
+    <div class = 'container'>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script>
+            $(document).ready(function(){
+                $('.chemcheckvalue').click(function(){
+                    txt += "";
+                    $('.chemcheckvalue:checked').each(function(){
+                        txt += $(this).val()+","
+                    });
+                    $('#chemcheckallvalue').val(txt);
+                });
+            });
+        </script>
+
+        
+        <script   type="text/javascript">
+            function SelectAll() 
+            {
+                var checkboxes = document.getElementsByName('check');
+                for(var i=0; i< checkboxes.length; i++) {
+                    if(checkboxes[i].type=='checkbox')  
+                        checkboxes[i].checked=true; 
+                }
+            }
+           
+        </script>
+ 
+        <center>
+        <form method="POST">
+
+            {% csrf_token %}
+         
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" onclick="SelectAll()" aria-label="Checkbox for following text input"></th>
+                        <th scope="col">Part Number</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Vendor Name</th>
+                        <th scope="col">Lead time</th>
+                        <th scope="col">Standard Packing</th>
+                        <th scope="col">UOM</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">PO Number</th>
+                        <th scope="col">On Hand</th>
+                        <th scope="col">Expired Date</th>
+                        <th scope="col">Class</th>
+                        <th scope="col">Std BOM</th>
+                        <th scope="col">Update</th>
+                        
+
+                    </tr>
+ 
+                </thead>
+                <tbody>
+               
+                {% for chem in chemical %}
+                <tr>
+                    <td><input type="checkbox" name = "check" value = {{chem.part_num}} class = "chemcheckvalue" aria-label="Checkbox for following text input"></td>
+                    <th scope="row">{{chem.part_num}}</th>
+                    <td>{{chem.chem_name}}</td>
+                    <td>{{chem.vendor_id.vendor_name}}</td>
+                    <td>{{chem.leadtime}}</td>
+                    <td>{{chem.std_packing}}</td>
+                    <td>{{chem.uom}}</td>
+                    <td>{{chem.chem_price}}</td>
+                    <td>{{chem.vendor_id.vendor_cont}}</td>
+                    <td>{{chem.po_number}}</td>
+                    <td>{{chem.onhand}}</td>
+                    <td></td>
+                    <td>{{chem.chem_class}}</td>
+                    <td>{{chem.STD_BOM}}</td>
+                    <th scope="col"><a class = "btn btn-primary" href = "update/{{chem.part_num}}">Update</a></th>
+                   
+                </tr>
+                       
+                {% endfor %}
+                    
+                </tbody>
+
+
+            </table>
+            <input type = "submit" name = "delete" id = "chemcheckallvalue"  value="Remove the selected option" >
+            
+        </form>
+
+        </center>
+        <a class = "btn btn-primary" href = "{% url 'add-material' %}">Add</a>
+        
+
+
+    </div>
+
+
+{% endblock %}
+

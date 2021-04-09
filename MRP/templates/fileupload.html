@@ -1,0 +1,21 @@
+{% extends 'layout.html'%}
+
+
+{% block content %}
+
+    <div class = "container">
+        <h1>File Upload</h1>
+        <br>
+        <a class = "btn btn-primary" href = "{% url 'week-loading' %}">3-week loading</a>
+        <a class = "btn btn-primary" href = "{% url 'eoqboq-page' %}">EOQ/BOQ</a>
+        <a class = "btn btn-primary" href = "#">On-hand</a>
+        <a class = "btn btn-primary" href = "{% url 'actual-page' %}">Actual Usage</a>
+       
+    </div>
+
+    
+
+
+
+
+{% endblock %}

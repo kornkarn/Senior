@@ -1,0 +1,103 @@
+{% extends 'layout.html'%}
+
+{% block content %}
+
+<div class = 'container'>
+    <center><h1>Update Material Data</h1></center>
+    
+    </form>  
+    <form method = "POST">
+        {% csrf_token %}
+        <div class="form-group row w-50">
+            <label for="partnumber" class="col-sm-2 col-form-label">Part_Number</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="partnumber" name = "partnumber" value ="{{getchem.part_num}}">
+            </div>   
+        </div>
+        <div class="form-group row w-50">
+            <label for="chemname" class="col-sm-2 col-form-label">Name</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="chemname" name = "chemname" value = "{{getchem.chem_name}}">
+            </div>        
+        </div>
+        <div class="form-group row w-50">
+            <label for="vendorname" class="col-sm-2 col-form-label">Vendorname</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="vendorname" name = "vendorname" value = "{{getchem.vendor_id.vendor_name}}">
+            </div>           
+        </div>
+        <div class="form-group row w-50">
+            <label for="leadtime" class="col-sm-2 col-form-label">Lead Time</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="leadtime" name = "leadtime" value = "{{getchem.leadtime}}">
+            </div>           
+        </div>
+        <div class="form-group row w-50">
+            <label for="stdpack" class="col-sm-2 col-form-label">Standard Packing</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="stdpack" name = "stdpack" value = "{{getchem.std_packing}}">
+            </div>           
+        </div>
+        <div class="form-group row w-50">
+            <label for="uom" class="col-sm-2 col-form-label">UOM</label>
+            <select class="form-control" id="uom" name = "uom" value = "{{getchem.uom}}">
+                <option value = "litre">litre</option>
+                <option value = "grams">grams</option>
+                <option value = "unit">unit</option>
+            </select>
+        </div>
+      
+        <div class="form-group row w-50">
+            <label for="price" class="col-sm-2 col-form-label">Price</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="price" name = "price" value = "{{getchem.chem_price}}">
+            </div>
+        </div>
+        <div class="form-group row w-50">
+            <label for="emailvendor" class="col-sm-2 col-form-label">Email</label>
+            <div class="col-sm-10">
+                <input type="email" class="form-control" id="emailvendor" name = "emailvendor" value = "{{getchem.vendor_id.vendor_cont}}"> 
+            </div>
+        </div>
+        <div class="form-group row w-50">
+            <label for="ponum" class="col-sm-2 col-form-label">PO Number</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="ponum" name = "ponum" value = "{{getchem.po_number}}">    
+            </div>
+        </div>
+        <div class="form-group row w-50">
+            <label for="onhand" class="col-sm-2 col-form-label">On-hand</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="onhand" name = "onhand" value = "{{getchem.onhand}}">
+            </div>    
+        </div>
+       
+        <div class="form-group row w-50">
+            <label for="expdate" class="col-sm-2 col-form-label">Expired Date</label>
+            <div class="col-sm-10">
+                <input type="date" class="form-control" id="expdate" name = "expdate" value = "{{getchem.part_num.expired_date}}">
+            </div>
+        </div>
+        
+        <div class="form-group row w-50">
+            <label for="chemclass" class="col-sm-2 col-form-label">Class</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="chemclass" name = "chemclass" value = "{{getchem.chem_class}}">
+            </div>
+        </div>
+        <div class="form-group row w-50">
+            <label for="stdbom" class="col-sm-2 col-form-label">Std Bom</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="stdbom" name = "stdbom" value = "{{getchem.STD_BOM}}">
+            </div>
+        </div>
+        <br>
+        <button type="submit" class="btn btn-primary">Confirm update</button>
+    </form>
+
+
+
+</div>
+
+
+{% endblock %}
