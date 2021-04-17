@@ -197,9 +197,11 @@ def Planning(request):
             
 
         #forecast_adjust
-        adjust = [] 
+        forecast_adjust = [] 
         month = []
         year = []
+        balance = []
+        onhand = [1000]
 
         #check ว่า week นั้นอยู่เดือนไหน
         for w in each_week:
@@ -207,8 +209,8 @@ def Planning(request):
                 year.append('20'+w[3:])
     
         #adjust forecast
-        for i in each_week: #22'20
-            weekk = int(i[:2])
+        for i in range(len(each_week)): #22'20
+            weekk = int(each_week[i][:2])
             for n in range(len(numweek_in_each_month)) :
                 weekk -= numweek_in_each_month[n]
                 if weekk == 0 :
@@ -219,9 +221,9 @@ def Planning(request):
                     break
             average_adjust = []
             for y in year :
-                if int(y[2:]) < int(i[3:]) :
-                    actual_each_month = sum(actual.filter(year = y, month = n+1 ).values_list('chem_amount', flat = True))
-                    convert_to_week = actual_each_month/numweek_in_each_month[n]
+                if int(y[2:]) < int(each_week[i][3:]) :
+                    actual_each_month = actual.filter(year = y, month = n+1, part_num=Chemical.objects.get(chem_name=searchchem).part_num ).values_list('chem_amount', flat = True)
+                    convert_to_week = actual_each_month[0]/numweek_in_each_month[n]
                     #print(convert_to_week)
                     for k in range(int(numweek_in_each_month[n])): #5 เอา forecast แต่ละวีคมาลบ actual 22,23,24,25,26
                         ww = 0
@@ -233,15 +235,34 @@ def Planning(request):
                         for p in package :
                             sumloading_each_week +=  week_load.filter(week = str(ww)+"'"+y[2:]).filter(package_id = p).values_list('loading', flat = True).last()
                         #print(sumloading_each_week)
-                        average_adjust.append(convert_to_week - sumloading_each_week)
+                        average_adjust.append(convert_to_week - sumloading_each_week*(Chemical.objects.get(chem_name=searchchem).STD_BOM))
             #print(i)
-            #print(average_adjust)
-                    
-            #if average_adjust != [] :
-            #   print(sum(average_adjust)/len(average_adjust))
+            #print(average_adjust, sum(average_adjust), len(average_adjust)) 
+            if average_adjust != [] :
+                forecast_adjust.append(sum_each_week[i]*(Chemical.objects.get(chem_name=searchchem).STD_BOM) + (sum(average_adjust)/len(average_adjust)))
+            else :
+                forecast_adjust.append(sum_each_week[i]*(Chemical.objects.get(chem_name=searchchem).STD_BOM) + 0)
+        #print(forecast_adjust)
                     #ลองเอาตัวเลขมารันดูใน excelว่าได้มั้ย
         
         #balance = onhand - usage + order recieve
+        for x in range(len(forecast_adjust)):
+            if actual_each_week[x] != 0 and len(actual_each_week) >= x :
+                if balance == [] :
+                    bal = onhand[0] - actual_each_week[x]
+                    balance.append(bal)
+                else :
+                    bal = balance[-1] - actual_each_week[x]
+                    balance.append(bal)
+            else :
+                if balance == [] :
+                    bal = onhand[0] - forecast_adjust[x]
+                    balance.append(bal)
+                else :
+                    bal = balance[-1] - forecast_adjust[x]
+                    balance.append(bal)
+        print(balance)
+            
 
         #find order received
 
@@ -251,7 +272,7 @@ def Planning(request):
         #print(wl)
 
 
-        return render(request, 'Planning_table.html', {'chem_data':chem_data, 'each_week':each_week, 'forecast_usage_each_chem':forecast_usage_each_chem, 'actual_each_week':actual_each_week, 'wlfilter':wlfilter})
+        return render(request, 'Planning_table.html', {'chem_data':chem_data, 'each_week':each_week, 'forecast_usage_each_chem':forecast_usage_each_chem, 'actual_each_week':actual_each_week, 'wlfilter':wlfilter, 'balance':balance, 'forecast_adjust':forecast_adjust})
 
             
     return render(request, 'Planning_table.html')

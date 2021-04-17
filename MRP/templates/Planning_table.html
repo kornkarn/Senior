@@ -10,6 +10,7 @@
     <form method = "get">
       {{wlfilter.form}}
       <button class = 'btn btn-primary' type = 'submit'>Search</button>
+      <!--อาจจะต้องใช้ javascript ให้มัน hide ข้อมูลช่วงนี้ถึงนี้-->
       
 
     </form>   
@@ -66,7 +67,7 @@
     </tr>
     <tr>
       <td><th scope="row">Forecast Usage</th></td>
-      {% for sum in forecast_usage_each_chem %}
+      {% for sum in forecast_adjust %}
         <td scope="row">{{sum}}</td>
       {% endfor %}
     </tr>
@@ -78,6 +79,9 @@
     </tr>
     <tr>
       <td><th scope="row">Balance</th></td><br>
+      {% for bal in balance %}
+        <td scope="row">{{bal}}</td>
+      {% endfor %}
     </tr>
   </table>
  
