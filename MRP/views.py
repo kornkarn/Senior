@@ -151,32 +151,27 @@ def Planning(request):
     
     if request.method == "POST":
         searchchem = request.POST['searchchem']
+        weekstart = request.POST['weekstart']
+        weekend = request.POST['weekend']
         chem_data = Chemical.objects.filter(chem_name=searchchem)
         week_load = WeekLoading.objects.all()
         package = Package.objects.all() 
         actual = Inv_Chemical.objects.all()
 
+        each_week_after_search = []
         def myFunc(e):
             return e[3:5]
         each_week = sorted(WeekLoading.objects.values_list('week', flat = True).distinct())
         each_week.sort(key = myFunc)
-        #print(each_week) 
-            
-        #sumloading 
-        sum_each_week = []
-        for w in each_week :
-            total = 0
-            for p in package :
-                total += week_load.filter(week = w).filter(package_id = p).values_list('loading', flat = True).last()
-            sum_each_week.append(total)
-        
-        #forecast usage in this chemical
-        forecast_usage_each_chem = []
-        for i in sum_each_week :
-            forecast_usage_each_chem.append(Chemical.objects.get(chem_name=searchchem).STD_BOM * i)
-
+        for w in range(len(each_week)) : #เอาเเค่วีคที่ search
+            if each_week[w] == weekstart :
+                start = w 
+            if each_week[w] == weekend :
+                end = w
+        each_week_after_search = each_week[start:end+1]
+     
         #actual usage in this chemical (ต้องหาก่อนว่าวีคนั้นอยู่เดือนไร,ปีไร เเล้วเอา actual มาหารจำนวนวีค)
-        numweek_in_each_month = [4,4,5,4,4,5,4,4,5,4,4,5] #ไม่ใช่ละต้องเป็น [4,5,4,4,5,4,4,5,4,4,5,4]
+        numweek_in_each_month = [4,4,5,4,4,5,4,4,5,4,4,5] 
         actual_each_week = []
         for ac in each_week: #22'20
             week = int(ac[:2])
@@ -190,64 +185,63 @@ def Planning(request):
                     break
             act = actual.filter(year = '20'+ac[3:], month = n+1, part_num=Chemical.objects.get(chem_name=searchchem).part_num).values_list('chem_amount', flat=True)
             if len(act) == 0 :
-                actual_each_week.append(0)
+                actual_each_week.append("")
             else :
-                actual_each_week.append(act[0]/numweek_in_each_month[n])
-        print(actual_each_week)
-            
-
+                actual_each_week.append(int(act[0]/numweek_in_each_month[n]))
+        actual_after_search = actual_each_week[start:end+1]
+      
         #forecast_adjust
-        forecast_adjust = [] 
         month = []
         year = []
         balance = []
-        onhand = [1000]
+        onhand = [2000]
 
         #check ว่า week นั้นอยู่เดือนไหน
         for w in each_week:
             if ('20'+w[3:]) not in year :
                 year.append('20'+w[3:])
-    
-        #adjust forecast
-        for i in range(len(each_week)): #22'20
-            weekk = int(each_week[i][:2])
-            for n in range(len(numweek_in_each_month)) :
-                weekk -= numweek_in_each_month[n]
-                if weekk == 0 :
+        
+        adj_forecast = []
+
+        #adjust forecast by week
+        for i in each_week :
+            wi = int(i[:2])
+            yi = i[3:]
+            for n in range(len(numweek_in_each_month)):
+                wi -= numweek_in_each_month[n]
+                if wi == 0 :
                     #print(n+1)
                     break
-                if weekk < 0 :
+                if wi < 0 :
                     #print(n+1)
                     break
-            average_adjust = []
+            adj = []
             for y in year :
-                if int(y[2:]) < int(each_week[i][3:]) :
-                    actual_each_month = actual.filter(year = y, month = n+1, part_num=Chemical.objects.get(chem_name=searchchem).part_num ).values_list('chem_amount', flat = True)
-                    convert_to_week = actual_each_month[0]/numweek_in_each_month[n]
-                    #print(convert_to_week)
-                    for k in range(int(numweek_in_each_month[n])): #5 เอา forecast แต่ละวีคมาลบ actual 22,23,24,25,26
-                        ww = 0
-                        for l in numweek_in_each_month[:n] :
-                            ww += int(l)
-                        ww += 1+k
-                        #print(ww)
-                        sumloading_each_week = 0
-                        for p in package :
-                            sumloading_each_week +=  week_load.filter(week = str(ww)+"'"+y[2:]).filter(package_id = p).values_list('loading', flat = True).last()
-                        #print(sumloading_each_week)
-                        average_adjust.append(convert_to_week - sumloading_each_week*(Chemical.objects.get(chem_name=searchchem).STD_BOM))
-            #print(i)
-            #print(average_adjust, sum(average_adjust), len(average_adjust)) 
-            if average_adjust != [] :
-                forecast_adjust.append(sum_each_week[i]*(Chemical.objects.get(chem_name=searchchem).STD_BOM) + (sum(average_adjust)/len(average_adjust)))
-            else :
-                forecast_adjust.append(sum_each_week[i]*(Chemical.objects.get(chem_name=searchchem).STD_BOM) + 0)
-        #print(forecast_adjust)
-                    #ลองเอาตัวเลขมารันดูใน excelว่าได้มั้ย
+                if y[2:] < yi :
+                    ac = actual.filter(year = y, month = n+1, part_num= Chemical.objects.get(chem_name=searchchem).part_num).values_list('chem_amount', flat=True)
+                    sumload_thischem = 0
+                    for p in package : 
+                        sumload_thischem += week_load.filter(week = i[:2]+"'"+y[2:]).filter(package_id = p).values_list('loading', flat = True).last()
+                    diff = (ac[0]/numweek_in_each_month[n])-(sumload_thischem * Chemical.objects.get(chem_name=searchchem).STD_BOM)
+                    adj.append(diff)
+            
+            if adj != [] :
+                sumload = 0
+                for p in package :
+                    sumload += week_load.filter(week = i[:2]+"'"+yi).filter(package_id = p).values_list('loading', flat = True).last()
+                adj_forecast.append(int((sumload * Chemical.objects.get(chem_name=searchchem).STD_BOM)+(sum(adj)/len(adj))))
+                #print(adj_forecast)
+            if yi == year[0][2:] :
+                sumload_thischem = 0
+                for p in package : 
+                    sumload_thischem += week_load.filter(week = i[:2]+"'"+yi).filter(package_id = p).values_list('loading', flat = True).last()
+                adj_forecast.append(int(sumload_thischem * Chemical.objects.get(chem_name=searchchem).STD_BOM))
+        adj_forecast_after_search = adj_forecast[start:end+1]
+
         
         #balance = onhand - usage + order recieve
-        for x in range(len(forecast_adjust)):
-            if actual_each_week[x] != 0 and len(actual_each_week) >= x :
+        for x in range(len(adj_forecast)):
+            if actual_each_week[x] != "" and len(actual_each_week) >= x :
                 if balance == [] :
                     bal = onhand[0] - actual_each_week[x]
                     balance.append(bal)
@@ -256,23 +250,80 @@ def Planning(request):
                     balance.append(bal)
             else :
                 if balance == [] :
-                    bal = onhand[0] - forecast_adjust[x]
+                    bal = onhand[0] - adj_forecast[x]
                     balance.append(bal)
                 else :
-                    bal = balance[-1] - forecast_adjust[x]
+                    bal = balance[-1] - adj_forecast[x]
                     balance.append(bal)
-        print(balance)
+        balance_after_search = balance[start:end+1]
+
+        #check ว่า shortage มั้ย
+        order_release = [] #อาจจะให้เก็บ ความยาวเท่ากับ each_week แล้วข้างในเป็น "" หมดเลย
+        order_receive = []
+        week_policy1 = [1,5,9,14,18,22,27,31,35,40,44,48,1] #กรณีที่สั่งสัปดาห์ที่1
+        week_policy2 = [2,6,10,15,19,23,28,32,36,41,45,49,2] #กรณีที่สั่งสัปดาห์ที่2
+
+        for i in range(len(each_week)) :
+            if (int(each_week[i][:2])-7) in week_policy1 : #กรณีลงสัปดาห์ที่ 1
+                if balance[i] <= 0  :  #or inventory position ตัวที่ i-1 < forecast ตัวที่ i
+                    week_order = int(each_week[i][:2]) - 7
+                    order_quan = sum(adj_forecast[i+1:i+6])
+                    order_release[week_order] = order_quan
+                    #คิด new balance
+            else :
+                for n in range(len(week_policy2)) : #กรณีลงสัปดาห์ที่ 2
+                    if int(each_week[i][:2])-7 < week_policy2[n] :
+                        week_order = week_policy2[n-1] #ต้องไปอัพเดทใน database ด้วยว่า status มัน short
+                        break
+                    if int(each_week[i][:2])-7 = week_policy2[n] :
+                        week_order = week_policy2[n]
+                        break
+                order_quan = sum(adj_forecast[i+1:i+6])
+                order_release[week_order] = order_quan   #ต้องมีคิด SS บวกเข้าไปด้วย
             
+                
+        """
+        for i in range(len(each_week)) :  
+            if balance[i] <= 0 : #ดูว่าอยู่ week policy มั้ย ex.26 สั่งย้อนไป 7 วีค
+                for n in range(len(week_policy)): 
+                    if int(each_week[i][:2])-7 < week_policy[n] :
+                        week_order = week_policy[n-1]
+                        break
+                order_quan = sum(adj_forecast[i+1:i+6])
+                order_release.append(order_quan)  #append ค่า order quantity 
+                for b in range(len(balance[i:])) :
+                    if actual_each_week[i] != "" :
+                        balance[i+b] = balance[i-1] - actual_each_week[i] + order_quan 
+                    else :
+                        balance[i+b] = balance[i-1] - adj_forecast[i] + order_quan          
+            else :
+                order_release.append("")
+                order_receive.append("")
 
-        #find order received
+        for i in range(len(order_release)) : #เขียนให้ order receive มันห่างกับ release 7 วีค
+            print(i)
+            if order_release[i] == "" :
+                order_receive.append("")
+            else :
+                for j in range(7) :
+                    if j != 6 :
+                        order_receive.append("")
+                    else :
+                        order_receive.append(order_release[i])
+                        
+                       
+                    
+        print(order_release)
+        print(order_receive)
+        print(balance)
+        """
+        #inventory position = balance + plan receive ของ 7 วีคข้างหน้า
 
-        #week filter
-        wl = WeekLoading.objects.all()
-        wlfilter = WeekFilter(request.GET, queryset=wl)
-        #print(wl)
+        #ถ้ามี order ให้ขึ้นไปที่หน้า dashboard ด้วย 
 
 
-        return render(request, 'Planning_table.html', {'chem_data':chem_data, 'each_week':each_week, 'forecast_usage_each_chem':forecast_usage_each_chem, 'actual_each_week':actual_each_week, 'wlfilter':wlfilter, 'balance':balance, 'forecast_adjust':forecast_adjust})
+
+        return render(request, 'Planning_table.html', {'chem_data':chem_data,'order_release':order_release, 'start':start,'balance_after_search':balance_after_search, 'end':end, 'each_week_after_search':each_week_after_search, 'adj_forecast_after_search':adj_forecast_after_search, 'actual_after_search':actual_after_search, 'onhand':onhand, 'balance':balance})
 
             
     return render(request, 'Planning_table.html')
