@@ -80,6 +80,9 @@
     </tr>
     <tr>
       <td><th scope="row">Planned Order Receipts</th></td><br>
+      {% for i in order_receive %}
+      <td scope="row">{{i}}</td>
+      {% endfor %}
     </tr>
     <tr>
       <td><th scope="row">Planned Order Released</th></td><br>
@@ -90,12 +93,15 @@
     </tr>
     <tr>
       <td><th scope="row">Balance</th></td><br>
-      {% for bal in balance_after_search %}
+      {% for bal in balance %}
         <td scope="row">{{bal}}</td>
       {% endfor %}
     </tr>
     <tr>
       <td><th scope="row">Inventory Position</th></td>
+      {% for i in inv_pos %}
+        <td scope="row">{{i}}</td>
+      {% endfor %}
     </tr>
   </table>
  

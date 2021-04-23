@@ -194,7 +194,7 @@ def Planning(request):
         month = []
         year = []
         balance = []
-        onhand = [2000]
+        onhand = [3090]
 
         #check ว่า week นั้นอยู่เดือนไหน
         for w in each_week:
@@ -202,7 +202,7 @@ def Planning(request):
                 year.append('20'+w[3:])
         
         adj_forecast = []
-
+        MAD = [] #เก็บ mad แต่ละวีค
         #adjust forecast by week
         for i in each_week :
             wi = int(i[:2])
@@ -231,6 +231,7 @@ def Planning(request):
                     sumload += week_load.filter(week = i[:2]+"'"+yi).filter(package_id = p).values_list('loading', flat = True).last()
                 adj_forecast.append(int((sumload * Chemical.objects.get(chem_name=searchchem).STD_BOM)+(sum(adj)/len(adj))))
                 #print(adj_forecast)
+
             if yi == year[0][2:] :
                 sumload_thischem = 0
                 for p in package : 
@@ -256,74 +257,81 @@ def Planning(request):
                     bal = balance[-1] - adj_forecast[x]
                     balance.append(bal)
         balance_after_search = balance[start:end+1]
+        #print(balance)
 
         #check ว่า shortage มั้ย
         order_release = [] #อาจจะให้เก็บ ความยาวเท่ากับ each_week แล้วข้างในเป็น "" หมดเลย
+        for i in range(len(each_week)):
+            order_release.append("")
         order_receive = []
+        for j in range(len(each_week)):
+            order_receive.append("")
         week_policy1 = [1,5,9,14,18,22,27,31,35,40,44,48,1] #กรณีที่สั่งสัปดาห์ที่1
         week_policy2 = [2,6,10,15,19,23,28,32,36,41,45,49,2] #กรณีที่สั่งสัปดาห์ที่2
 
-        for i in range(len(each_week)) :
-            if (int(each_week[i][:2])-7) in week_policy1 : #กรณีลงสัปดาห์ที่ 1
-                if balance[i] <= 0  :  #or inventory position ตัวที่ i-1 < forecast ตัวที่ i
-                    week_order = int(each_week[i][:2]) - 7
-                    order_quan = sum(adj_forecast[i+1:i+6])
-                    order_release[week_order] = order_quan
-                    #คิด new balance
-            else :
-                for n in range(len(week_policy2)) : #กรณีลงสัปดาห์ที่ 2
-                    if int(each_week[i][:2])-7 < week_policy2[n] :
-                        week_order = week_policy2[n-1] #ต้องไปอัพเดทใน database ด้วยว่า status มัน short
-                        break
-                    if int(each_week[i][:2])-7 = week_policy2[n] :
-                        week_order = week_policy2[n]
-                        break
-                order_quan = sum(adj_forecast[i+1:i+6])
-                order_release[week_order] = order_quan   #ต้องมีคิด SS บวกเข้าไปด้วย
-            
-                
-        """
-        for i in range(len(each_week)) :  
-            if balance[i] <= 0 : #ดูว่าอยู่ week policy มั้ย ex.26 สั่งย้อนไป 7 วีค
-                for n in range(len(week_policy)): 
-                    if int(each_week[i][:2])-7 < week_policy[n] :
-                        week_order = week_policy[n-1]
-                        break
-                order_quan = sum(adj_forecast[i+1:i+6])
-                order_release.append(order_quan)  #append ค่า order quantity 
-                for b in range(len(balance[i:])) :
-                    if actual_each_week[i] != "" :
-                        balance[i+b] = balance[i-1] - actual_each_week[i] + order_quan 
-                    else :
-                        balance[i+b] = balance[i-1] - adj_forecast[i] + order_quan          
-            else :
-                order_release.append("")
-                order_receive.append("")
-
-        for i in range(len(order_release)) : #เขียนให้ order receive มันห่างกับ release 7 วีค
-            print(i)
-            if order_release[i] == "" :
-                order_receive.append("")
-            else :
-                for j in range(7) :
-                    if j != 6 :
-                        order_receive.append("")
-                    else :
-                        order_receive.append(order_release[i])
-                        
-                       
-                    
-        print(order_release)
-        print(order_receive)
-        print(balance)
-        """
         #inventory position = balance + plan receive ของ 7 วีคข้างหน้า
+        inv_pos = balance.copy()
+        print(len(inv_pos))
 
+        def Calsum(s) : 
+            total = 0
+            for i in s :
+                if i != "" :
+                    total += int(i)
+            return total
+        
+        for i in range(0,len(each_week)-1):
+            fake_bal = balance[i]
+            for j in range(1,8) :
+                if i+j == 35 :
+                    break
+                if actual_each_week[i+j] != "" :
+                    fake_bal -= actual_each_week[i+j]
+                    if fake_bal <= 0  :
+                        order_receive[i+j] = sum(adj_forecast[i+j+1:i+j+6])
+                        #ทำให้ order release ตรงกับ policy เรา
+                        if int(each_week[i+j][:2])-7 in week_policy1  :
+                            order_release[i+j-7] = order_receive[i+j] 
+                        elif int(each_week[i+j][:2])-7  in week_policy2 :
+                            order_release[i+j-7] = order_receive[i+j]
+                        else :
+                            for n in range(len(week_policy2)) :
+                                if int(each_week[i+j][:2])-7  < week_policy2[n] : #ex. 33  สั่งวีค 23 i+j == 11
+                                    order_release[i+j-7-((int(each_week[i+j][:2])-7)-week_policy2[n-1])] = order_receive[i+j]
+                                    break
+                        if actual_each_week[i+j] != "" :
+                            balance[i+j] = balance[i+j-1] + order_receive[i+j] - actual_each_week[i+j]
+                            for b in range(len(balance[i+j+1:])):
+                                if actual_each_week[b+1+j+i] != "" :
+                                    balance[i+j+1+b] = balance[i+j+b] - actual_each_week[i+j+1+b]
+                                else :
+                                    balance[i+j+1+b] = balance[i+j+b] - adj_forecast[i+j+1+b]
+                        else :
+                            balance[i+j] = balance[i+j-1] + order_receive[i+j] - adj_forecast[i+j]
+                        fake_bal = balance[i+j]
+                else :
+                    fake_bal -= adj_forecast[i+j]
+                    if fake_bal <= 0 :
+                        order_receive[i+j] = sum(adj_forecast[i+j+1:i+j+6])
+                        order_release[i+j-7] = order_receive[i+j]
+                        if actual_each_week[i+j] != "" :
+                            balance[i+j] = balance[i+j-1] + order_receive[i+j] - actual_each_week[i+j]
+                        else :
+                            balance[i+j] = balance[i+j-1] + order_receive[i+j] - adj_forecast[i+j]
+                        fake_bal = balance[i+j]
+            inv_pos[i] = Calsum(order_receive[i+1:i+8]) + balance[i] 
+        
+            if inv_pos[i-1] < adj_forecast[i] and i >=1 :  #ให้สั่งถ้า inv pos[n+6] < fore usage[n+7]
+                print("KUAY",inv_pos[i-1],adj_forecast[i] )
+
+        #print(balance)
+        #print(order_receive)
+        #print(order_release) 
+        
         #ถ้ามี order ให้ขึ้นไปที่หน้า dashboard ด้วย 
+        #remark ถ้าไม่ search ก็จะไม่รู้เลยว่าสารไหนshort????
 
-
-
-        return render(request, 'Planning_table.html', {'chem_data':chem_data,'order_release':order_release, 'start':start,'balance_after_search':balance_after_search, 'end':end, 'each_week_after_search':each_week_after_search, 'adj_forecast_after_search':adj_forecast_after_search, 'actual_after_search':actual_after_search, 'onhand':onhand, 'balance':balance})
+        return render(request, 'Planning_table.html', {'chem_data':chem_data,'inv_pos': inv_pos,'order_release':order_release,'order_receive': order_receive, 'start':start,'balance':balance, 'end':end, 'each_week_after_search':each_week_after_search, 'adj_forecast_after_search':adj_forecast_after_search, 'actual_after_search':actual_after_search, 'onhand':onhand, 'balance':balance})
 
             
     return render(request, 'Planning_table.html')
@@ -395,6 +403,7 @@ def DashBoard(request):
     status = Status_Chem.objects.all()
     enough = []
     shortage = []
+    
     #check status and show colour sign
     for i in range(len(status)) :
         for j in status[i].chemical.all() :
@@ -402,6 +411,13 @@ def DashBoard(request):
                 enough.append(j.part_num)
             if i == 1 :
                 shortage.append(j.part_num)
+
+    #ต้องรันสารเเต่ละตัวเพื่อดูว่ามีตัวไหน short มั้ย
+    #300084 #สมมติเราอยู่วีคที่ n คือวีคที่ 23'18  1. ดูว่าอยู่ในสัปดาห์ที่เท่าไหร่ 2. ดูว่าวีคที่30 balance <= 0 มั้ย หรือ inv_pos <= forecast มั้ย
+    #inv_position จาก balance วีค 30 บวกที่จะรับ (ต้องรันไปอีกอาทิตย์เพื่อดูว่า) 
+        
+    
+
               
     
     return render(request,'dashboard.html', {'chemical':chemical, 'status':status, 'enough':enough, 'shortage':shortage})
