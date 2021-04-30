@@ -1,0 +1,54 @@
+{% extends 'layout.html'%}
+
+{% block content %}
+<div class = 'container'>
+    <br>
+    <center><h1>Export File</h1></center>
+    <!--ถ้ามี po เยอะก็ให้มัน filter po เอา-->
+    {% for key,value in mydict.items %}
+        <h3>PO Number : {{key}}</h3>
+        {% for v in value %}
+            <h3>Partnumber :{{v}} </h3>
+        {% endfor %}
+        <h3>Document : <a href = "{% url 'export-file' %}">{{key}}.xlsx</a></h3>
+        <div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                    <th scope="col">Part Number</th>
+                    <th scope="col">Vendor Name</th>
+                    <th scope="col">Chemical Name</th>
+                    <th scope="col">Unit price</th>
+                    <th scope="col">Quantity</th>
+                    <th scope="col">Amount</th>
+                    </tr>
+                </thead>
+                    {% for i in value %}
+                    <tr>
+                        <td>{{i}}</td>
+                        {{partnum.key}}
+                        {% for k,v in partnum.items %}
+                            {% if k == i %}
+                                <td>{{v.0}}</td>
+                                <td>{{v.1}}</td>
+                                <td>{{v.2}}</td>
+                                <td>{{v.3}}</td> 
+                                <td>{{v.4}}</td> 
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+
+            
+        
+            </table>
+
+        </div>
+    {% endfor %}
+    <!-- link download for excel-->
+    <!--preview เป็นตารางขึ้นมา-->
+    
+</div>
+
+
+{% endblock %}

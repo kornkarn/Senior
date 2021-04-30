@@ -12,7 +12,9 @@ urlpatterns = [
     path('actualusage/', ActualUsage, name = 'actual-page'),
     path('eoqboq/', EoqBoq, name = 'eoqboq-page'),
     path('dashboard/', DashBoard, name = 'dashboard-page'),
-    path('material/update/<str:part_num>/', UpdateMaterial, name = 'update-page')
+    path('material/update/<str:part_num>/', UpdateMaterial, name = 'update-page'),
+    path('exportpage', ExportPage, name = 'export-page'),
+    path('exportfile', ExportFile, name = 'export-file')
 
     
 

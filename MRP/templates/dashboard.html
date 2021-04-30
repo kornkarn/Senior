@@ -3,6 +3,8 @@
 {% block content %}
 
 <div class = 'container'>
+    <br>
+    <a class = "btn btn-primary" href = "{% url 'export-page' %}">Export</a>
     <form method = "POST">
         {% csrf_token %}
         <br>
@@ -25,12 +27,21 @@
                 <th scope="row">{{chem.part_num}}</th>
                 <td>{{chem.chem_name}}</td>
                 <td>{{chem.vendor_id.vendor_name}}</td>
-                <td>EOQ</td>
-                <td>Order Released</td>
+                
+                {% for k,v in my_order.items %}
+                    {% if k == chem.part_num %}
+                        <td>{{v.0}}</td>
+                        <td>{{v.1}}</td>
+                    {% else %}
+                        <td> </td>
+                        <td> </td>
+                    {% endif %}
+                {% endfor %}
+               
                 <!--ถ้า on-hand เหลือน้อยกว่า safety stock ให้ปุ่ม alert ขึ้น-->
-                {% if chem.part_num in enough %}
+                {% if chem.part_num not in shortage %}
                     <th scope="col"><input type = "submit" class = "btn btn-success" value = "enough  "></th>
-                {% elif chem.part_num in shortage %}
+                {% else %}
                     <th scope="col"><input type = "submit" class = "btn btn-danger" value = "shortage"></th>
                 
                 {% endif %}

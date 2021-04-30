@@ -86,16 +86,17 @@ class Status_Chem(models.Model):
     statuslist = (  ('shortage','shortage'),
                     ('enough','enough'))
     chem_status = models.CharField(max_length=100, choices=statuslist, default='enough')
-    chemical = models.ManyToManyField('Chemical')
-    class Meta:
-        ordering = ['chem_status']
+    listchem = models.ForeignKey('Chemical',on_delete=models.CASCADE, blank=True, null=True)
+    #chemical = models.ManyToManyField('Chemical')
+    #class Meta:
+     #   ordering = ['chem_status']
     def __str__(self):
         return self.chem_status
 
-class ShowStatus(models.Model):
-    part_num = models.ForeignKey('Chemical', on_delete=models.CASCADE, blank=True, null=True )
-    status_id = models.ForeignKey('Status_Chem', on_delete=models.CASCADE, blank=True, null=True)
-    ROP = models.FloatField(blank=True, null=True)
+#class ShowStatus(models.Model):
+ #   part_num = models.ForeignKey('Chemical', on_delete=models.CASCADE, blank=True, null=True )
+  #  status_id = models.ForeignKey('Status_Chem', on_delete=models.CASCADE, blank=True, null=True)
+   # ROP = models.FloatField(blank=True, null=True)
 
 class EoqBoqload(models.Model):
     year = models.CharField(max_length=30, blank=True, null=True)
